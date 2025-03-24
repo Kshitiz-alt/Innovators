@@ -1,15 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import NextAuth, { Account, Profile, User } from "next-auth";
-import GitHubProvider from "next-auth/providers/github";
-import { author_database } from "@/sanity/lib/queries";
+import GitHub from "next-auth/providers/github";
+import { AUTHOR_BY_GITHUB_ID_QUERY } from "@/sanity/lib/queries";
 import { client } from "@/sanity/lib/client";
 import { writeClient } from "@/sanity/lib/write-client";
 import { JWT as NextAuthJWT } from "next-auth/jwt";
 import { AdapterUser } from "next-auth/adapters";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  providers: [ GitHubProvider({
+  providers: [ GitHub({
     clientId: process.env.AUTH_GITHUB_ID as string,
     clientSecret: process.env.AUTH_GITHUB_SECRET as string,
   }),],
@@ -26,13 +26,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       const { id, login, bio } = profile || {}
       const existingUser = await client
         .withConfig({ useCdn: false })
-        .fetch(author_database, {
+        .fetch(AUTHOR_BY_GITHUB_ID_QUERY, {
           id,
         });
 
       if (!existingUser) {
         await writeClient.create({
-          _type: "author",
+          _type: "AUTHOR_BY_GITHUB_ID_QUERY",
           id,
           name,
           username: login,
@@ -48,7 +48,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (account && profile) {
         const user = await client
           .withConfig({ useCdn: false })
-          .fetch(author_database, {
+          .fetch(AUTHOR_BY_GITHUB_ID_QUERY, {
             id: profile?.id,
           });
 
